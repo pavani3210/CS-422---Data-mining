@@ -1,0 +1,80 @@
+---
+title: "CS 422 HW"
+author: "Pavani Rangineni"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+
+```{=html}
+<!-- More information in R Markdown can be found at:
+1. https://www.ssc.wisc.edu/sscc/pubs/RFR/RFR_RMarkdown.html  This is 
+   the place to start since it is a short tutorial.
+2. https://rmarkdown.rstudio.com/index.html This contains a longer 
+   tutorial.  Take a look at the cheatsheet in 
+   https://rmarkdown.rstudio.com/lesson-15.html, it is a concise 
+   reference of R Markdown on two pages.
+<-->
+```
+### Part 2-1
+
+```{r}
+setwd('C:/Users/Pavani/Desktop/CS 422/HW1')
+data.df <- read.delim(file = 'us-covid.csv', sep = ',', header = T, comment.char = '#')
+data.df
+```
+
+### Part 2-2.
+
+```{r}
+data.df <- subset(data.df, select = -confirmed_deaths )
+data.df
+```
+
+### Part 2-3
+
+```{r}
+data.df <- data.df[order(-data.df$total_cases),]
+head(data.df,6)
+tail(data.df,6)
+```
+### Part 2-4
+
+```{r}
+library(psych)
+pairs.panels(data.df[3:8], hist.col = "white", ellipses = FALSE)
+```
+
+### part 2-4-Description
+
+```{r}
+# The first two columns are excluded in correlation analysis because state and level does not work for correlation. 
+# From the above figure The  Max correlation is 0.98
+# The Min correlation is 0
+```
+
+### part 2-5-A
+
+```{r}
+plot(data.df$confirmed+data.df$probable, data.df$total_deaths, main="approximately",xlab="Confirmed+Probable",ylab="Total_deaths")
+```
+
+### part 2-5-B
+
+```{r}
+# Anomaly - A data point or a collection of data points that dont follow the same pattern as rest of the data.
+# From the above graph the columns with zero values are detected as anamolies.
+```
+
+### part 2-5-C
+
+```{r}
+library(dplyr)
+data <- select( data.df, state, total_cases, confirmed, probable, total_deaths)
+anomaly_data <- filter(data, confirmed == 0, probable == 0 )
+print(anomaly_data)
+```

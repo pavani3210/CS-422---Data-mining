@@ -1,0 +1,22 @@
+---
+title: "CS 422 HW3"
+author: "Pavani Rangineni"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+
+### Part 1-A
+
+```{r}
+library(rpart)
+library(rpart.plot)
+data.df <- iris
+model <- rpart(Species ~ ., data = data.df, method = "class")
+rpart.plot(model, extra=104, fallen.leaves=T, type=4, main="Iris Dataset Decision Tree")
+```
+

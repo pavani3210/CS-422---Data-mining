@@ -1,0 +1,101 @@
+---
+title: "CS 422 HW5"
+author: "Pavani Rangineni"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+
+### Part 2-1-A
+
+```{r}
+setwd('C:/Users/Pavani/Desktop/CS 422/HW5')
+
+# read product csv file
+products_data <- read.csv('products.csv', header = FALSE, col.names = c('ProductID','ProductName', sep = ','))
+read_data <- c('tr-1k.csv', 'tr-5k.csv', 'tr-20k.csv', 'tr-75k.csv')
+write_data <- c('tr-1k-canonical.csv', 'tr-5k-canonical.csv', 'tr-20k-canonical.csv', 'tr-75k-canonical.csv')
+count <- 1
+for(data in read_data){
+  # read the data from the csv files
+  no_col <- max(count.fields(data, sep = ","))
+  table_data <- read.table(data, header=FALSE, col.names = paste0("V",1:no_col), sep=",",fill=TRUE)
+  table_data <- table_data[2:no_col]
+  product_df <- data.frame(lapply(table_data, function(x){x <- products_data$ProductName[match(x, products_data$ProductID)]}))
+# write the data into the csv file by replacing the product id with product name
+  write.table(product_df, write_data[count], sep = ",", col.names = FALSE, row.names = FALSE, na = '', append = TRUE, quote = FALSE)
+   count <- count + 1
+}
+```
+
+
+### Part 2-1-B - Frequent Itemsets of 1K
+```{r}
+library(arules)
+data_1k <- read.transactions("tr-1k-canonical.csv", sep = ",")
+freqdata_1k <- apriori(data_1k, parameter = list(sup = 0.01, target="frequent itemsets"))
+inspect(sort(freqdata_1k, decreasing = T, by = "count"))
+```
+### Part 2-1-B - Rules of 1K 
+```{r}
+rules_1k <- apriori(data_1k, parameter = list(sup=0.01, conf = 0.8))
+inspect(sort(rules_1k, by="support"))
+```
+### Part 2-1-B - Frequent Itemsets of 5K 
+```{r}
+data_5k <- read.transactions("tr-5k-canonical.csv", sep = ",")
+freqdata_5k <- apriori(data_5k, parameter = list(sup = 0.01, target="frequent itemsets"))
+inspect(sort(freqdata_5k, decreasing = T, by = "count"))
+```
+### Part 2-1-B - Rules of 5K  
+```{r}
+rules_5k <- apriori(data_5k, parameter = list(sup=0.01, conf = 0.8))
+inspect(sort(rules_5k, by="support"))
+```
+### Part 2-1-B - Frequent Itemsets of 20K
+```{r}
+data_20k <- read.transactions("tr-20k-canonical.csv", sep = ",")
+freqdata_20k <- apriori(data_20k, parameter = list(sup = 0.01, target="frequent itemsets"))
+inspect(sort(freqdata_20k, decreasing = T, by = "count"))
+```
+### Part 2-1-B - Rules of 20K   
+```{r}
+rules_20k <- apriori(data_20k, parameter = list(sup=0.01, conf = 0.8))
+inspect(sort(rules_20k, by="support"))
+```
+### Part 2-1-B - Frequent Itemsets of 75K 
+```{r}
+data_75k <- read.transactions("tr-75k-canonical.csv", sep = ",")
+freqdata_75k <- apriori(data_75k, parameter = list(sup = 0.01, target="frequent itemsets"))
+inspect(sort(freqdata_75k, decreasing = T, by = "count"))
+```
+### Part 2-1-B - Rules of 75K 
+```{r}
+rules_75k <- apriori(data_75k, parameter = list(sup=0.01, conf = 0.8))
+inspect(sort(rules_75k, by="support"))
+```
+### Part 2-1-C
+```{r}
+# Support is an indication of frequent itemset.
+# confidence is an indication of how often the support-rule is true
+# Lift is a measure of association using both support and confidence
+# lift is equal to one implies no association
+# lift is greater than one means that the RHS is likely to be bought if LHS is bought
+# lift is less than one means that the RHS is unlikely to be bought if LHS is bought
+
+# Considering the above values - If the number of transaction increases, the support level increases, the confidence increases and so the lift is also high
+```
+### Part 2-1-D-I
+```{r}
+most_freq_item <- inspect(head(sort(rules_75k, by="support"))[1])
+most_freq_item[1]
+```
+### Part 2-1-D-II
+```{r}
+least_freq_item <- inspect(head(sort(rules_75k, decreasing = F, by="support"))[1])
+least_freq_item[1]
+```

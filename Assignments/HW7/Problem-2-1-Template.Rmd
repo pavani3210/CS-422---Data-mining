@@ -1,0 +1,180 @@
+---
+title: "Homework 7"
+author: "Pavani Rangineni"
+output:
+  html_document:
+    df_print: paged
+  toc: yes
+  html_notebook: null
+toc_float: yes
+---
+  
+```{r}  
+library(keras)
+library(dplyr)
+library(data.table)
+library(mltools)
+library(caret)
+library(rpart)
+library(rpart.plot)
+
+rm(list=ls())
+
+df <- read.csv('wifi_localization.csv', header = TRUE, sep = ',')
+
+# Seed the PRNG
+set.seed(1122)
+df <- df[sample(nrow(df)), ]
+sample <- sample(c(TRUE, FALSE), nrow(df), replace = TRUE, prob = c(0.8,0.2))
+df_train <- df[sample, ] # Shuffle, as all of the data in the .csv file
+                             # is ordered by label! 
+df_test <- df[!sample, ]
+df_train
+
+# --- Your code goes below ---
+# (a)
+#model <- rpart( wifi1+wifi2+wifi3+wifi4+wifi5+wifi6+wifi7 ~. , data=df_train, method="class")
+model <- rpart( room ~. , data=df_train, method="class")
+
+predict.df <- predict(model, df_test, type="class")
+confusion_matrix <- confusionMatrix(predict.df, as.factor(df_test$room))
+confusion_matrix
+# (b)
+# Note that in (b) either use a new variable to store the model, or null out
+# the variable that stored the model in (a) if you want to reuse that variable.
+# The reason is that if you don't null it out, the model in (b) will have
+# residual information left over from (a) and your results will not be quite
+# accurate.
+```
+```{r}
+model <- keras_model_sequential() 
+model %>% 
+  layer_dense(units = 1, activation = 'relu', input_shape = c(7)) %>%  
+  layer_dense(units = 4, activation = 'softmax')
+model %>% compile(loss = "categorical_crossentropy",
+                  optimizer = "adam",
+                  metrics = c("accuracy"))
+summary(model)
+df <- read.csv('wifi_localization.csv', header = TRUE, sep = ',')
+df$room <- as.factor(df$room)
+newdata <- one_hot(as.data.table(df))
+df <- newdata
+df <- as.matrix(df)
+dimnames(df)<-NULL
+df
+indx <- sample(2,
+               nrow(df),
+               replace = TRUE,
+               prob = c(0.8, 0.2))
+df
+x_train = df[indx == 1, 1:7]
+x_test = df[indx == 2, 1:7]
+y_train = df[indx == 1, 8:11]
+y_test = df[indx == 2, 8:11]
+history <- model %>% fit(x_train, y_train, epochs = 100,batch_size = 32, validation_split = 0.2)
+plot(history)
+```
+
+```{r}
+pred_2<-predict(model, x_test)
+dim(round(pred_2))
+dim(y_test)
+#confusionMatrix(y_test,round(pred_2))
+```
+
+```{r}
+# b(i)
+model %>% evaluate(x_test,  y_test, verbose = 2)
+```
+
+```{r}
+# b(ii)
+history
+plot(history)
+# As the number of neurons in the model is 1, the resulting accuracy is very low.
+```
+
+```{r}
+# b(iii)
+pred_1<-predict(model, head(x_test))
+pred_1
+head(y_test)
+# From the above observation we see room 1,2,3 have similar prediction and room 4 have low value.
+```
+
+```{r}
+# b(iv)
+# From resulted values, the bias of the above model is high.
+
+# b(v)
+# No, from the graph above we can see after few epochs the accuracy and losses have not changed
+```
+
+```{r}
+# c(i)
+model <- keras_model_sequential() 
+model %>% 
+  layer_dense(units = 10, activation = 'relu', input_shape = c(7)) %>% 
+  layer_dense(units = 5, activation = 'relu') %>% 
+  layer_dense(units = 4, activation = 'softmax')
+model %>% compile(loss = "categorical_crossentropy",
+                  optimizer = "adam",
+                  metrics = c("accuracy"))
+summary(model)
+df <- read.csv('wifi_localization.csv', header = TRUE, sep = ',')
+df$room <- as.factor(df$room)
+newdata <- one_hot(as.data.table(df))
+df <- newdata
+df <- as.matrix(df)
+dimnames(df)<-NULL
+df
+indx <- sample(2,
+               nrow(df),
+               replace = TRUE,
+               prob = c(0.8, 0.2))
+df
+x_train = df[indx == 1, 1:7]
+x_test = df[indx == 2, 1:7]
+y_train = df[indx == 1, 8:11]
+y_test = df[indx == 2, 8:11]
+
+history <- model %>% fit(x_train, y_train, epochs = 200,batch_size = 32,
+      validation_split = 0.2)
+plot(history)
+
+```
+
+```{r}
+#c(i)
+# below is the accuracy and loss
+model %>% evaluate(x_test,  y_test, verbose = 2)
+```
+
+```{r}
+#c(ii)
+model %>% evaluate(x_test,  y_test, verbose = 2)
+```
+```{r}
+#c(iii)
+pred_1<-predict(model, head(x_test))
+pred_1
+head(y_test)
+#From the plot above we can see the bias of the model is reduced gradually compared to first model
+```
+
+```{r}
+#d
+pred_1<-predict(model, x_test)
+dim(round(pred_1))
+dim(y_test)
+confusionMatrix(as.factor(y_test),as.factor(round(pred_1)))
+
+#d{i}
+# From above confusion matrix, comparing to decision tree[Accuracy : 0.9668] with NN(Accuracy : 0.9917), accuracy of NN model is higher
+
+#d{ii}
+# Which one you choose?
+# Depending on the amount of data, if the data we have is less decision tree is much suitable. If the data we have is more NN model is a better option
+```
+
+```

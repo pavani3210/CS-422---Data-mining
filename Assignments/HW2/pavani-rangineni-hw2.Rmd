@@ -1,0 +1,177 @@
+---
+title: "CS 422 HW2"
+author: "Pavani Rangineni"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+
+
+```{r}
+library(ggplot2)
+library(ISLR)
+```
+### Part 2.1
+
+```{r}
+set.seed(1122)
+index = sample(1:nrow(Auto), 0.95*dim(Auto)[1])
+train.df = Auto[index, ]
+test.df = Auto[-index, ]
+train.df
+test.df
+```
+
+### Part 2.1-a
+```{r}
+lm_model = lm(mpg~.,data = train.df[1:8])
+summary(lm_model)
+```
+
+### Part 2.1-a-i
+```{r}
+# The name variable is a qualitative predictor in the Auto dataset and doesn't scale to other predictors, so we are ignoring that variable in the linear model.
+```
+
+### Part 2.1-a-ii
+```{r}
+summary(lm_model)
+rmse = round(sqrt(mean((train.df$mpg - predict(lm_model))^2)),2)
+paste("R-sq = ", round(summary(lm_model)$r.sq, digits=2))
+paste("Adjusted R-sq = ", round(summary(lm_model)$adj.r.sq, digits=2))
+paste("RSE = ", round(summary(lm_model)$sigma, digits=2))
+paste("RMSE = ", rmse)
+
+# RMSE: A metric that indicates how far the predicted values from the observed values in a dataset, on average. The lower the RMSE means the better a model fits to dataset.
+# R2: A metric that tells the proportion of the variance of the response variable of regression model that will be described by the predictor variables. This ranges from 0 to 1. The higher the R2 value, the better a model fits to dataset.
+# RSE : This is the standard deviation of residuals.  Smaller is better.
+  
+```
+
+### Part 2.1-a-iii
+```{r}
+residuals = resid(lm_model)
+
+par(mfrow = c(3, 2))
+plot(fitted(lm_model), residuals)
+abline(0,0)
+plot(lm_model)
+```
+
+### Part 2.1-a-iv
+```{r}
+ggplot(data = train.df[1:8], aes(x = lm_model$residuals)) +
+    geom_histogram(fill = 'blue', color = 'black')  +
+    labs(title = 'Residuals Histogram', x = 'Residuals', y = 'Frequency')
+```
+
+### Part 2.1-b-i
+```{r}
+# we can consider a linear model to be statistically only when both the model PValues and individual predicted pvalues are less than the predetermined statistical values significance level of 0.05. As per the summary of the linear model, the top three predictors with pvalues are less than 0.05 are weight, year and origin
+lm_model_2 = lm(mpg~weight+year+origin,data = train.df[1:8])
+summary(lm_model_2)
+```
+
+### Part 2.1-b-ii
+```{r}
+summary(lm_model_2)
+rmse = round(sqrt(mean((train.df$mpg - predict(lm_model_2))^2)),2)
+paste("R-sq = ", round(summary(lm_model_2)$r.sq, digits=2))
+paste("Adjusted R-sq = ", round(summary(lm_model_2)$adj.r.sq, digits=2))
+paste("RSE = ", round(summary(lm_model_2)$sigma, digits=2))
+paste("RMSE = ", rmse)
+
+# RMSE: A metric that indicates how far the predicted values from the observed values in a dataset, on average. The lower the RMSE means the better a model fits to dataset.
+# R2: A metric that tells the proportion of the variance of the response variable of regression model that will be described by the predictor variables. This ranges from 0 to 1. The higher the R2 value, the better a model fits to dataset.
+# RSE : This is the standard deviation of residuals.  Smaller is better.
+  
+```
+
+### Part 2.1-b-iii
+```{r}
+residuals = resid(lm_model_2)
+par(mfrow = c(1, 2))
+plot(fitted(lm_model_2), residuals)
+plot(lm_model_2,1)
+```
+
+
+### Part 2.1-b-iv
+```{r}
+#create histogram of residuals
+ggplot(data = train.df[1:8], aes(x = lm_model_2$residuals)) +
+    geom_histogram(fill = 'blue', color = 'black')  +
+    labs(title = 'Residuals Histogram', x = 'Residuals', y = 'Frequency')
+```
+### Part 2.1-b-v
+```{r}
+# We can see that the RMSE value for the model 2.1-a is equal to the model 2.1-b. We can also see that the R2 value for the model 2.1-a is greater than the the model 2.1-b. This tells us that the model 2.1-a is better fit than the model 2.1-b.
+```
+
+### Part 2.1-c
+```{r}
+actual_testdata = data.frame(weight=test.df$weight,year=test.df$year,origin=test.df$origin)
+predict_testdata = round(predict(model.bestpredictors, newdata=actualtestdata.df),2)
+final_data = data.frame(predicted=predict_testdata,test=test.df$mpg)
+final_data
+```
+
+### Part 2.1-d
+```{r}
+conf_int = data.frame(round(predict(lm_model_2, newdata=actual_testdata, interval = 'confidence'),2))
+conf_int_df = data.frame(Prediction=conf_int$fit, Response=test.df$mpg, Lower=conf_int$lwr, Upper=conf_int$upr)
+
+findCI = function(val) {
+  if(val[2] > val[3] && val[2] < val[4]){
+    result = 1
+  }else{
+    result = 0
+  }
+  return(result)
+}
+
+conf_int_apply = apply(conf_int_df,1,findCI)
+conf_int_df = data.frame(conf_int_df,Matches=conf_int_apply)
+conf_int_df
+conf_int_matches = filter(conf_int_df, conf_int_df$Matches == 1)
+conf_int_matches
+paste("Total observations correctly predicted: ", nrow(conf_int_matches))
+```
+
+### Part 2.1-e
+```{r}
+pred_int = data.frame(round(predict(model.bestpredictors, newdata=actualtestdata.df, interval = "prediction"),2))
+pred_int.df = data.frame(Prediction=pred_int$fit, Response=test.df$mpg, Lower=pred_int$lwr, Upper=pred_int$upr)
+findPI = function(val) {
+  if(val[2] > val[3] && val[2] < val[4]){
+    result = 1
+  }else{
+    result = 0
+  }
+  return(result)
+}
+pred_int.apply = apply(pred_int.df,1,findPI)
+pred_int.df = data.frame(pred_int.df,Matches=pred_int.apply)
+pred_int.df
+pred_int.matches = filter(pred_int.df, pred_int.df$Matches == 1)
+pred_int.matches
+paste("Total observations correctly predicted: ", nrow(pred_int.matches))
+```
+### Part 2.1-f
+```{r}
+# confidence and prediction intervals of predicted values of a linear regression model and the model’s coefficients.A prediction interval implies the uncertainty of values, where as a confidence interval reflects the uncertainty of the mean predicted values. Thus, the prediction interval is much wider than the confidence interval for the same data.
+```
+
+### Part 2.1-f-i
+```{r}
+# The prediction interval has more matches than confidence interval
+```
+
+### Part 2.1-f-ii
+```{r}
+# Generally, the prediction interval would be more appropriate. Because, using confidence interval when you should be using a prediction interval will greatly underestimate the uncertainty. The prediction interval has more matches than that of confidence interval
+```

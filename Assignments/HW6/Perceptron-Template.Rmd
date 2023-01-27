@@ -1,0 +1,68 @@
+---
+title: "Homework 6, Problem 1"
+author: "Pavani Rangineni"
+toc_float: yes
+output:
+  html_document:
+    df_print: paged
+  toc: yes
+  html_notebook: null
+  pdf_document: default
+---
+
+```{r}  
+rm(list=ls())
+# Set working directory as needed
+setwd('C:/Users/Pavani/Desktop/CS 422/HW6')
+```
+
+# The Perceptron function
+
+
+```{r} 
+perceptron <- function(points, lamda, gamma) {
+    x <- points[,c(3:4)]
+    y <- points[,1]
+    weight <- rep(0, dim(x)[2] + 1) #weight
+    errors <- c(0)
+    threshold <- gamma+1;
+    epoch<-0
+    while(gamma<threshold){
+      threshold <- 0;
+      for (i in 1:length(y)) {
+        ypred <- my_sign(x,weight,i)
+        weight <- weight + lamda * (y[i] - ypred) * c(1, as.numeric(x[i, ]))
+        if ((y[i] - ypred) != 0.0) {
+          errors[epoch] <- errors[epoch] + 1
+        }
+        threshold <- threshold+abs(y[i]-ypred)
+      }
+      threshold<-threshold/length(y)
+      epoch<-epoch+1
+      errors[[length(errors)+1]] <- 0
+    }
+    epochs <- seq(1, length(errors), by=1)
+    plot(epochs, errors,type = 'l')
+    return(c(weight,epoch,errors))
+}
+```
+
+# The sign function, this is the prediction function
+
+```{r}  
+my_sign <- function(x, weight,i) {
+  if(sum(weight[2:length(weight)] * as.numeric(x[i, ])) + weight[1] < 0) {
+            return(-1)
+    } else {
+             return(1)
+    }
+}
+```
+
+# MAIN ENTRY POINT
+
+```{r}
+data <- read.csv(file = './perceptron.csv')
+perceptron(data,1,0.01)
+```
+

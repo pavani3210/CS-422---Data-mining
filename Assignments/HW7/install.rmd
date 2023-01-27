@@ -1,0 +1,38 @@
+```{r}
+install.packages("tensorflow")
+```
+
+```{r}
+devtools::install_github("rstudio/tensorflow", force = TRUE)
+Sys.setenv(TENSORFLOW_PYTHON="/usr/local/bin/python")
+library(tensorflow)
+```
+
+```{r}
+library(reticulate)
+path_to_python <- install_python()
+virtualenv_create("r-reticulate", python = path_to_python)
+```
+
+```{r}
+library(tensorflow)
+install_tensorflow(envname = "r-reticulate")
+```
+
+
+```{r}
+remove.packages("keras")
+install.packages("keras")
+
+devtools::install_github("rstudio/keras")
+library(reticulate)
+library(keras)
+install_keras(envname = "r-reticulate")
+```
+
+
+```{r}
+virtualenv_python(envname = "r-reticulate")
+library(tensorflow)
+tf$constant("Hello Tensorflow!")
+```
